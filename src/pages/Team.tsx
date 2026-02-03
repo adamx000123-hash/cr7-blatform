@@ -1,22 +1,62 @@
 import { motion } from 'framer-motion';
-import { Users, Link, Copy, TrendingUp, UserPlus, Gift, CheckCircle } from 'lucide-react';
+import { Users, Link, Copy, TrendingUp, UserPlus, Gift, CheckCircle, Share2 } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { StatCard } from '@/components/cards/StatCard';
 import { GoldButton } from '@/components/ui/GoldButton';
-import { mockUser, mockReferrals } from '@/data/mockData';
+import { useAuth } from '@/hooks/useAuth';
+import { useReferrals } from '@/hooks/useReferrals';
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 const Team = () => {
+  const { profile } = useAuth();
+  const { referrals, totalCommission, loading } = useReferrals();
+  const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-  const referralLink = `https://cr7elite.com/join/${mockUser.invitationCode}`;
+
+  const referralLink = profile ? `${window.location.origin}/auth?ref=${profile.referral_code}` : '';
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralLink);
     setCopied(true);
+    toast({
+      title: 'تم النسخ! ✓',
+      description: 'رابط الإحالة تم نسخه',
+    });
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const totalCommission = mockReferrals.reduce((sum, r) => sum + r.totalCommission, 0);
+  const copyCode = () => {
+    if (profile?.referral_code) {
+      navigator.clipboard.writeText(profile.referral_code);
+      toast({
+        title: 'تم النسخ! ✓',
+        description: 'رمز الإحالة تم نسخه',
+      });
+    }
+  };
+
+  const shareLink = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'CR7 Elite - منصة النخبة',
+        text: `انضم إلى منصة CR7 Elite واربح معي! استخدم رمز الإحالة: ${profile?.referral_code}`,
+        url: referralLink,
+      });
+    } else {
+      copyToClipboard();
+    }
+  };
+
+  if (!profile) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout>
@@ -32,7 +72,7 @@ const Team = () => {
             <h1 className="font-display text-2xl text-foreground">فريقي</h1>
           </div>
           <p className="text-sm text-muted-foreground">
-            ادعُ أصدقاءك واربح عمولات
+            ادعُ أصدقاءك واربح 10% عمولة على كل إيداع
           </p>
         </motion.div>
       </section>
@@ -66,11 +106,26 @@ const Team = () => {
             </p>
           </div>
 
-          <div className="bg-primary/10 rounded-xl p-3 text-center">
+          <div className="bg-primary/10 rounded-xl p-3 text-center mb-4">
             <p className="text-xs text-muted-foreground mb-1">كود الدعوة</p>
             <p className="text-xl font-bold text-primary font-mono">
-              {mockUser.invitationCode}
+              {profile.referral_code}
             </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <GoldButton variant="outline" size="md" className="w-full" onClick={copyCode}>
+              <span className="flex items-center justify-center gap-2">
+                <Copy className="w-4 h-4" />
+                نسخ الكود
+              </span>
+            </GoldButton>
+            <GoldButton variant="primary" size="md" className="w-full" onClick={shareLink}>
+              <span className="flex items-center justify-center gap-2">
+                <Share2 className="w-4 h-4" />
+                مشاركة
+              </span>
+            </GoldButton>
           </div>
         </motion.div>
       </section>
@@ -81,7 +136,7 @@ const Team = () => {
           <StatCard
             icon={UserPlus}
             label="إجمالي الإحالات"
-            value={mockReferrals.length}
+            value={referrals.length}
             index={0}
           />
           <StatCard
@@ -110,15 +165,12 @@ const Team = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between py-2 border-b border-border/50">
               <span className="text-primary font-bold">10%</span>
-              <span className="text-sm text-muted-foreground">المستوى الأول</span>
+              <span className="text-sm text-muted-foreground">عمولة على كل إيداع</span>
             </div>
-            <div className="flex items-center justify-between py-2 border-b border-border/50">
-              <span className="text-primary font-bold">5%</span>
-              <span className="text-sm text-muted-foreground">المستوى الثاني</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-primary font-bold">2%</span>
-              <span className="text-sm text-muted-foreground">المستوى الثالث</span>
+            <div className="py-2">
+              <p className="text-xs text-muted-foreground text-center">
+                كلما أودع صديقك المُحال، تحصل على 10% من قيمة الإيداع تلقائياً!
+              </p>
             </div>
           </div>
         </motion.div>
@@ -128,33 +180,45 @@ const Team = () => {
       <section className="px-4 pb-6">
         <h3 className="font-display text-lg text-foreground mb-4 text-right">الإحالات الأخيرة</h3>
         
-        <div className="space-y-3">
-          {mockReferrals.map((referral, index) => (
-            <motion.div
-              key={referral.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-gradient-card border border-border rounded-xl p-4 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${referral.isActive ? 'bg-green-500' : 'bg-muted-foreground'}`} />
-                <span className="text-sm font-semibold text-primary">
-                  ${referral.totalCommission.toFixed(2)}
-                </span>
-              </div>
-              
-              <div className="text-right">
-                <p className="font-medium text-foreground">{referral.username}</p>
-                <p className="text-xs text-muted-foreground">
-                  مستوى {referral.level} • {new Date(referral.joinedAt).toLocaleDateString('ar-SA')}
-                </p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : referrals.length === 0 ? (
+          <div className="text-center py-8 bg-secondary/30 rounded-2xl">
+            <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground">لا توجد إحالات حتى الآن</p>
+            <p className="text-xs text-muted-foreground mt-1">شارك رمز الإحالة مع أصدقائك!</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {referrals.map((referral, index) => (
+              <motion.div
+                key={referral.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-gradient-card border border-border rounded-xl p-4 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-green-500" />
+                  <span className="text-sm font-semibold text-primary">
+                    ${Number(referral.total_commission).toFixed(2)}
+                  </span>
+                </div>
+                
+                <div className="text-right">
+                  <p className="font-medium text-foreground">مستخدم مُحال</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(referral.created_at).toLocaleDateString('ar-SA')}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
-        <GoldButton variant="primary" size="lg" className="w-full mt-6">
+        <GoldButton variant="primary" size="lg" className="w-full mt-6" onClick={shareLink}>
           <span className="flex items-center justify-center gap-2">
             <UserPlus className="w-5 h-5" />
             دعوة المزيد

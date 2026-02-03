@@ -1,14 +1,56 @@
 import { motion } from 'framer-motion';
-import { Crown, Trophy, Wallet, TrendingUp, Target, Users, Star, ChevronLeft } from 'lucide-react';
+import { Crown, Trophy, Wallet, TrendingUp, Target, Users, Star, ChevronLeft, Copy, Share2 } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { StatCard } from '@/components/cards/StatCard';
 import { ChallengeCard } from '@/components/cards/ChallengeCard';
 import { GoldButton } from '@/components/ui/GoldButton';
-import { mockUser, mockChallenges, stats } from '@/data/mockData';
+import { mockChallenges } from '@/data/mockData';
+import { useAuth } from '@/hooks/useAuth';
+import { usePlatformStats } from '@/hooks/usePlatformStats';
+import { useReferrals } from '@/hooks/useReferrals';
+import { useToast } from '@/hooks/use-toast';
+import { vipLevels } from '@/data/mockData';
 import heroBg from '@/assets/hero-bg.jpg';
 
 const Index = () => {
+  const { profile, loading } = useAuth();
+  const { stats } = usePlatformStats();
+  const { count: referralCount } = useReferrals();
+  const { toast } = useToast();
   const featuredChallenges = mockChallenges.slice(0, 3);
+
+  const copyReferralCode = () => {
+    if (profile?.referral_code) {
+      navigator.clipboard.writeText(profile.referral_code);
+      toast({
+        title: 'تم النسخ! ✓',
+        description: 'رمز الإحالة تم نسخه',
+      });
+    }
+  };
+
+  const shareReferralLink = () => {
+    if (profile?.referral_code) {
+      const link = `${window.location.origin}/auth?ref=${profile.referral_code}`;
+      navigator.clipboard.writeText(link);
+      toast({
+        title: 'تم النسخ! ✓',
+        description: 'رابط الإحالة تم نسخه',
+      });
+    }
+  };
+
+  if (loading || !profile) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </PageLayout>
+    );
+  }
+
+  const currentVipLevel = vipLevels.find(v => v.level === profile.vip_level) || vipLevels[0];
 
   return (
     <PageLayout>
@@ -28,7 +70,7 @@ const Index = () => {
             className="text-center mb-6"
           >
             <h2 className="font-display text-3xl text-gradient-gold mb-2">
-              مرحباً، {mockUser.username}
+              مرحباً، {profile.username}
             </h2>
             <p className="text-muted-foreground text-sm">
               استمر في التحديات واربح المزيد
@@ -45,8 +87,42 @@ const Index = () => {
             <div className="bg-gradient-gold rounded-full px-6 py-2 shadow-gold flex items-center gap-2">
               <Crown className="w-5 h-5 text-primary-foreground" />
               <span className="font-bold text-primary-foreground">
-                VIP {mockUser.vipLevel} - ذهبي
+                VIP {profile.vip_level} - {currentVipLevel.nameAr}
               </span>
+            </div>
+          </motion.div>
+
+          {/* Referral Code Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="bg-secondary/50 rounded-2xl p-4 mb-4"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex gap-2">
+                <button 
+                  onClick={shareReferralLink}
+                  className="p-2 rounded-lg bg-primary/20 hover:bg-primary/30 transition-colors"
+                >
+                  <Share2 className="w-4 h-4 text-primary" />
+                </button>
+                <button 
+                  onClick={copyReferralCode}
+                  className="p-2 rounded-lg bg-primary/20 hover:bg-primary/30 transition-colors"
+                >
+                  <Copy className="w-4 h-4 text-primary" />
+                </button>
+              </div>
+              <span className="text-xs text-muted-foreground">رمز الإحالة الخاص بك</span>
+            </div>
+            <div className="text-center">
+              <span className="text-lg font-bold text-gradient-gold tracking-wider">
+                {profile.referral_code}
+              </span>
+              <p className="text-xs text-muted-foreground mt-1">
+                احصل على 10% عمولة من كل إيداع يقوم به صديقك!
+              </p>
             </div>
           </motion.div>
 
@@ -60,14 +136,14 @@ const Index = () => {
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-muted-foreground">التحديات اليومية</span>
               <span className="text-sm font-semibold text-foreground">
-                {mockUser.dailyChallengesCompleted}/{mockUser.dailyChallengesLimit}
+                {profile.daily_challenges_completed}/{profile.daily_challenges_limit}
               </span>
             </div>
             <div className="h-2 bg-secondary rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-gradient-gold rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: `${(mockUser.dailyChallengesCompleted / mockUser.dailyChallengesLimit) * 100}%` }}
+                animate={{ width: `${(profile.daily_challenges_completed / profile.daily_challenges_limit) * 100}%` }}
                 transition={{ duration: 1, delay: 0.5 }}
               />
             </div>
@@ -81,27 +157,27 @@ const Index = () => {
           <StatCard
             icon={Wallet}
             label="رصيدك الحالي"
-            value={`$${mockUser.balance.toLocaleString()}`}
+            value={`$${Number(profile.balance).toLocaleString()}`}
             index={0}
             variant="gold"
           />
           <StatCard
             icon={TrendingUp}
             label="إجمالي الأرباح"
-            value={`$${mockUser.totalEarned.toLocaleString()}`}
+            value={`$${Number(profile.total_earned).toLocaleString()}`}
             index={1}
           />
           <StatCard
             icon={Target}
-            label="تحديات مكتملة"
-            value="156"
-            subValue="هذا الشهر"
+            label="مستوى VIP"
+            value={`VIP ${profile.vip_level}`}
+            subValue={currentVipLevel.nameAr}
             index={2}
           />
           <StatCard
             icon={Users}
             label="الإحالات النشطة"
-            value="24"
+            value={referralCount.toString()}
             subValue="فريقك"
             index={3}
           />
@@ -128,7 +204,7 @@ const Index = () => {
             <ChallengeCard
               key={challenge.id}
               challenge={challenge}
-              userVipLevel={mockUser.vipLevel}
+              userVipLevel={profile.vip_level}
               index={index}
             />
           ))}
@@ -151,13 +227,13 @@ const Index = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-gradient-gold">
-                {stats.totalUsers.toLocaleString()}
+                {stats.total_users.toLocaleString()}
               </p>
               <p className="text-xs text-muted-foreground">عضو نشط</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-gradient-gold">
-                ${(stats.totalPaid / 1000000).toFixed(1)}M
+                ${(stats.total_paid / 1000000).toFixed(1)}M
               </p>
               <p className="text-xs text-muted-foreground">إجمالي المدفوعات</p>
             </div>

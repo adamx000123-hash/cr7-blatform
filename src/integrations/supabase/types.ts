@@ -14,13 +14,182 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      platform_stats: {
+        Row: {
+          active_challenges: number
+          id: string
+          total_paid: number
+          total_users: number
+          updated_at: string
+        }
+        Insert: {
+          active_challenges?: number
+          id?: string
+          total_paid?: number
+          total_users?: number
+          updated_at?: string
+        }
+        Update: {
+          active_challenges?: number
+          id?: string
+          total_paid?: number
+          total_users?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          balance: number
+          created_at: string
+          daily_challenges_completed: number
+          daily_challenges_limit: number
+          email: string
+          id: string
+          referral_code: string
+          referred_by: string | null
+          total_earned: number
+          updated_at: string
+          username: string
+          vip_level: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          balance?: number
+          created_at?: string
+          daily_challenges_completed?: number
+          daily_challenges_limit?: number
+          email: string
+          id: string
+          referral_code: string
+          referred_by?: string | null
+          total_earned?: number
+          updated_at?: string
+          username: string
+          vip_level?: number
+        }
+        Update: {
+          avatar_url?: string | null
+          balance?: number
+          created_at?: string
+          daily_challenges_completed?: number
+          daily_challenges_limit?: number
+          email?: string
+          id?: string
+          referral_code?: string
+          referred_by?: string | null
+          total_earned?: number
+          updated_at?: string
+          username?: string
+          vip_level?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          commission_rate: number
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+          total_commission: number
+        }
+        Insert: {
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+          total_commission?: number
+        }
+        Update: {
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          total_commission?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          id: string
+          related_user_id: string | null
+          status: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description: string
+          id?: string
+          related_user_id?: string | null
+          status?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          id?: string
+          related_user_id?: string | null
+          status?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_related_user_id_fkey"
+            columns: ["related_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_referral_code: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never

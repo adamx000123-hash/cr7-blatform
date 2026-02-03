@@ -1,8 +1,10 @@
-import { Bell, Wallet } from 'lucide-react';
+import { Bell, Wallet, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { mockUser } from '@/data/mockData';
+import { useAuth } from '@/hooks/useAuth';
 
 export const Header = () => {
+  const { profile, signOut } = useAuth();
+
   return (
     <header className="sticky top-0 z-40 glass border-b border-border">
       <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">
@@ -33,7 +35,7 @@ export const Header = () => {
           >
             <Wallet className="w-4 h-4 text-primary" />
             <span className="text-sm font-semibold text-primary">
-              ${mockUser.balance.toLocaleString()}
+              ${profile ? Number(profile.balance).toLocaleString() : '0'}
             </span>
           </motion.div>
 
@@ -47,6 +49,18 @@ export const Header = () => {
           >
             <Bell className="w-5 h-5 text-foreground" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full" />
+          </motion.button>
+
+          {/* Logout */}
+          <motion.button
+            onClick={signOut}
+            className="p-2 rounded-full bg-secondary/50 hover:bg-destructive/20 transition-colors"
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <LogOut className="w-5 h-5 text-foreground" />
           </motion.button>
         </div>
       </div>

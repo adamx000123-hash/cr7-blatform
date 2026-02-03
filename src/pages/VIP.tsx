@@ -2,9 +2,24 @@ import { motion } from 'framer-motion';
 import { Crown, Zap, Star, Shield } from 'lucide-react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { VIPCard } from '@/components/cards/VIPCard';
-import { vipLevels, mockUser } from '@/data/mockData';
+import { vipLevels } from '@/data/mockData';
+import { useAuth } from '@/hooks/useAuth';
 
 const VIP = () => {
+  const { profile } = useAuth();
+  const currentVipLevel = profile?.vip_level ?? 0;
+  const currentLevel = vipLevels.find(v => v.level === currentVipLevel) || vipLevels[0];
+
+  if (!profile) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout>
       {/* Header */}
@@ -37,16 +52,16 @@ const VIP = () => {
               </div>
               <div>
                 <p className="text-primary-foreground font-bold text-lg">
-                  VIP {mockUser.vipLevel}
+                  VIP {currentVipLevel}
                 </p>
                 <p className="text-primary-foreground/80 text-sm">
-                  {vipLevels[mockUser.vipLevel].nameAr}
+                  {currentLevel.nameAr}
                 </p>
               </div>
             </div>
             <div className="text-left">
               <p className="text-primary-foreground text-2xl font-bold">
-                x{vipLevels[mockUser.vipLevel].rewardMultiplier}
+                x{currentLevel.rewardMultiplier}
               </p>
               <p className="text-primary-foreground/80 text-xs">مضاعف</p>
             </div>
@@ -83,7 +98,7 @@ const VIP = () => {
             <VIPCard
               key={level.level}
               vipLevel={level}
-              currentLevel={mockUser.vipLevel}
+              currentLevel={currentVipLevel}
               index={index}
             />
           ))}
