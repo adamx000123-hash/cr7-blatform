@@ -1,13 +1,15 @@
 import { motion } from 'framer-motion';
-import { Trophy, Filter, Search } from 'lucide-react';
+import { Trophy, Search } from 'lucide-react';
 import { useState } from 'react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { ChallengeCard } from '@/components/cards/ChallengeCard';
-import { mockChallenges, mockUser } from '@/data/mockData';
+import { mockChallenges } from '@/data/mockData';
+import { useAuth } from '@/hooks/useAuth';
 
 type DifficultyFilter = 'all' | 'easy' | 'medium' | 'hard';
 
 const Challenges = () => {
+  const { profile } = useAuth();
   const [filter, setFilter] = useState<DifficultyFilter>('all');
 
   const filteredChallenges = filter === 'all' 
@@ -20,6 +22,16 @@ const Challenges = () => {
     { key: 'medium', label: 'متوسط' },
     { key: 'hard', label: 'صعب' },
   ];
+
+  if (!profile) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout>
@@ -82,12 +94,12 @@ const Challenges = () => {
       <section className="px-4 mb-4">
         <div className="bg-secondary/30 rounded-xl p-3 flex items-center justify-around">
           <div className="text-center">
-            <p className="text-lg font-bold text-foreground">{mockUser.dailyChallengesCompleted}</p>
+            <p className="text-lg font-bold text-foreground">{profile.daily_challenges_completed}</p>
             <p className="text-xs text-muted-foreground">مكتمل</p>
           </div>
           <div className="w-px h-8 bg-border" />
           <div className="text-center">
-            <p className="text-lg font-bold text-primary">{mockUser.dailyChallengesLimit - mockUser.dailyChallengesCompleted}</p>
+            <p className="text-lg font-bold text-primary">{profile.daily_challenges_limit - profile.daily_challenges_completed}</p>
             <p className="text-xs text-muted-foreground">متبقي</p>
           </div>
           <div className="w-px h-8 bg-border" />
@@ -105,7 +117,7 @@ const Challenges = () => {
             <ChallengeCard
               key={challenge.id}
               challenge={challenge}
-              userVipLevel={mockUser.vipLevel}
+              userVipLevel={profile.vip_level}
               index={index}
             />
           ))}

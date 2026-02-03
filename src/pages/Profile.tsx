@@ -11,11 +11,48 @@ import {
   HelpCircle,
   ChevronLeft
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { GoldButton } from '@/components/ui/GoldButton';
-import { mockUser, mockTransactions } from '@/data/mockData';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Transaction {
+  id: string;
+  type: string;
+  amount: number;
+  description: string;
+  status: string;
+  created_at: string;
+}
 
 const Profile = () => {
+  const { profile, signOut } = useAuth();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!profile) return;
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', profile.id)
+        .order('created_at', { ascending: false })
+        .limit(4);
+
+      if (error) {
+        console.error('Error fetching transactions:', error);
+      } else {
+        setTransactions(data || []);
+      }
+      setLoading(false);
+    };
+
+    fetchTransactions();
+  }, [profile]);
+
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'deposit':
@@ -39,6 +76,16 @@ const Profile = () => {
     { icon: Settings, label: 'الإعدادات', href: '#' },
   ];
 
+  if (!profile) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout>
       {/* Profile Header */}
@@ -51,10 +98,10 @@ const Profile = () => {
           <div className="w-20 h-20 rounded-full bg-gradient-gold flex items-center justify-center mb-3 shadow-gold">
             <User className="w-10 h-10 text-primary-foreground" />
           </div>
-          <h2 className="font-display text-xl text-foreground">{mockUser.username}</h2>
-          <p className="text-sm text-muted-foreground">{mockUser.email}</p>
+          <h2 className="font-display text-xl text-foreground">{profile.username}</h2>
+          <p className="text-sm text-muted-foreground">{profile.email}</p>
           <div className="mt-2 px-3 py-1 bg-primary/20 rounded-full">
-            <span className="text-sm font-medium text-primary">VIP {mockUser.vipLevel}</span>
+            <span className="text-sm font-medium text-primary">VIP {profile.vip_level}</span>
           </div>
         </motion.div>
       </section>
@@ -74,7 +121,7 @@ const Profile = () => {
           <div className="text-center mb-6">
             <p className="text-xs text-muted-foreground mb-1">الرصيد المتاح</p>
             <p className="text-3xl font-bold text-gradient-gold">
-              ${mockUser.balance.toLocaleString()}
+              ${Number(profile.balance).toLocaleString()}
             </p>
             <p className="text-xs text-muted-foreground mt-1">USDT</p>
           </div>
@@ -110,39 +157,49 @@ const Profile = () => {
         </div>
 
         <div className="space-y-2">
-          {mockTransactions.slice(0, 4).map((transaction, index) => (
-            <motion.div
-              key={transaction.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-secondary/30 rounded-xl p-3 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-2">
-                {getTransactionIcon(transaction.type)}
-                <span className={`font-semibold ${transaction.amount >= 0 ? 'text-green-500' : 'text-accent'}`}>
-                  {transaction.amount >= 0 ? '+' : ''}${Math.abs(transaction.amount).toFixed(2)}
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              لا توجد معاملات حتى الآن
+            </div>
+          ) : (
+            transactions.map((transaction, index) => (
+              <motion.div
+                key={transaction.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-secondary/30 rounded-xl p-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  {getTransactionIcon(transaction.type)}
+                  <span className={`font-semibold ${Number(transaction.amount) >= 0 ? 'text-green-500' : 'text-accent'}`}>
+                    {Number(transaction.amount) >= 0 ? '+' : ''}${Math.abs(Number(transaction.amount)).toFixed(2)}
+                  </span>
+                </div>
+                
+                <div className="text-right flex-1 mx-3">
+                  <p className="text-sm font-medium text-foreground">{transaction.description}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(transaction.created_at).toLocaleDateString('ar-SA')}
+                  </p>
+                </div>
+                
+                <span className={`text-xs px-2 py-1 rounded-full ${
+                  transaction.status === 'completed' 
+                    ? 'bg-green-500/20 text-green-500' 
+                    : transaction.status === 'pending'
+                    ? 'bg-yellow-500/20 text-yellow-500'
+                    : 'bg-accent/20 text-accent'
+                }`}>
+                  {transaction.status === 'completed' ? 'مكتمل' : transaction.status === 'pending' ? 'قيد الانتظار' : 'فشل'}
                 </span>
-              </div>
-              
-              <div className="text-right flex-1 mx-3">
-                <p className="text-sm font-medium text-foreground">{transaction.description}</p>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(transaction.createdAt).toLocaleDateString('ar-SA')}
-                </p>
-              </div>
-              
-              <span className={`text-xs px-2 py-1 rounded-full ${
-                transaction.status === 'completed' 
-                  ? 'bg-green-500/20 text-green-500' 
-                  : transaction.status === 'pending'
-                  ? 'bg-yellow-500/20 text-yellow-500'
-                  : 'bg-accent/20 text-accent'
-              }`}>
-                {transaction.status === 'completed' ? 'مكتمل' : transaction.status === 'pending' ? 'قيد الانتظار' : 'فشل'}
-              </span>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))
+          )}
         </div>
       </section>
 
@@ -175,6 +232,7 @@ const Profile = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
+          onClick={signOut}
           className="w-full flex items-center justify-center gap-2 py-3 text-accent hover:bg-accent/10 rounded-xl transition-colors"
         >
           <LogOut className="w-5 h-5" />
