@@ -9,7 +9,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useReferrals } from '@/hooks/useReferrals';
 import { useToast } from '@/hooks/use-toast';
 import { vipLevels } from '@/data/mockData';
-import heroBg from '@/assets/hero-bg.jpg';
+
+const heroBg = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_2548-N21BtZo4aZsJUJ2zjGVRwOzrRdIbWn.png";
 
 const Index = () => {
   const { profile, loading } = useAuth();
