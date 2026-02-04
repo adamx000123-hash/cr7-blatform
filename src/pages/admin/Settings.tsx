@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -7,8 +7,8 @@ import {
   ShieldCheck, 
   Bell, 
   Save,
-  Lock,
-  Globe
+  ArrowDownCircle,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,8 @@ import { motion } from 'framer-motion';
 const Settings = () => {
   const queryClient = useQueryClient();
   const [apiKey, setApiKey] = useState('');
+  const [minWithdrawal, setMinWithdrawal] = useState('');
+  const [maxWithdrawal, setMaxWithdrawal] = useState('');
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['admin-settings'],
@@ -34,6 +36,14 @@ const Settings = () => {
     }
   });
 
+  useEffect(() => {
+    if (settings) {
+      setApiKey(settings.nowpayments_api_key?.value || '');
+      setMinWithdrawal(settings.withdrawal_limits?.min || '10');
+      setMaxWithdrawal(settings.withdrawal_limits?.max || '1000');
+    }
+  }, [settings]);
+
   const updateSettingsMutation = useMutation({
     mutationFn: async ({ key, value }: { key: string, value: any }) => {
       const { error } = await supabase
@@ -45,6 +55,9 @@ const Settings = () => {
     onSuccess: () => {
       toast.success('تم حفظ الإعدادات بنجاح');
       queryClient.invalidateQueries({ queryKey: ['admin-settings'] });
+    },
+    onError: (error: any) => {
+      toast.error('حدث خطأ أثناء الحفظ: ' + error.message);
     }
   });
 
@@ -58,10 +71,59 @@ const Settings = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Withdrawal Limits */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-card p-6 rounded-2xl border border-border/50 space-y-6"
+        >
+          <div className="flex items-center gap-3 border-b border-border/50 pb-4">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              <ArrowDownCircle className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold">حدود السحب</h3>
+          </div>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">الحد الأدنى ($)</label>
+                <Input 
+                  type="number" 
+                  value={minWithdrawal}
+                  onChange={(e) => setMinWithdrawal(e.target.value)}
+                  className="glass-card"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">الحد الأقصى ($)</label>
+                <Input 
+                  type="number" 
+                  value={maxWithdrawal}
+                  onChange={(e) => setMaxWithdrawal(e.target.value)}
+                  className="glass-card"
+                />
+              </div>
+            </div>
+            <Button 
+              className="w-full"
+              onClick={() => updateSettingsMutation.mutate({ 
+                key: 'withdrawal_limits', 
+                value: { min: minWithdrawal, max: maxWithdrawal } 
+              })}
+              disabled={updateSettingsMutation.isPending}
+            >
+              {updateSettingsMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+              حفظ حدود السحب
+            </Button>
+          </div>
+        </motion.div>
+
         {/* API Settings */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
           className="glass-card p-6 rounded-2xl border border-border/50 space-y-6"
         >
           <div className="flex items-center gap-3 border-b border-border/50 pb-4">
@@ -78,7 +140,7 @@ const Settings = () => {
                 <Input 
                   type="password" 
                   placeholder="أدخل مفتاح الـ API..." 
-                  defaultValue={settings?.nowpayments_api_key?.value}
+                  value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   className="glass-card"
                 />
@@ -86,7 +148,7 @@ const Settings = () => {
                   onClick={() => updateSettingsMutation.mutate({ key: 'nowpayments_api_key', value: { value: apiKey } })}
                   disabled={updateSettingsMutation.isPending}
                 >
-                  <Save className="w-4 h-4" />
+                  {updateSettingsMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 </Button>
               </div>
               <p className="text-[10px] text-muted-foreground">يستخدم هذا المفتاح لمعالجة عمليات السحب التلقائية</p>
@@ -98,7 +160,7 @@ const Settings = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.2 }}
           className="glass-card p-6 rounded-2xl border border-border/50 space-y-6"
         >
           <div className="flex items-center gap-3 border-b border-border/50 pb-4">
@@ -143,7 +205,7 @@ const Settings = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.3 }}
           className="glass-card p-6 rounded-2xl border border-border/50 space-y-6"
         >
           <div className="flex items-center gap-3 border-b border-border/50 pb-4">

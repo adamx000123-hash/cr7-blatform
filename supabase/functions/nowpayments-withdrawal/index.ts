@@ -8,7 +8,6 @@ const corsHeaders = {
 
 const NOWPAYMENTS_API_URL = 'https://api.nowpayments.io/v1';
 const WITHDRAWAL_COOLDOWN_HOURS = 24;
-const MINIMUM_WITHDRAWAL_USD = 10;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -16,11 +15,9 @@ serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get('NOWPAYMENTS_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!apiKey) throw new Error('NOWPAYMENTS_API_KEY is not configured');
     if (!supabaseUrl || !supabaseServiceKey) throw new Error('Supabase configuration missing');
 
     const authHeader = req.headers.get('Authorization');
@@ -45,6 +42,16 @@ serve(async (req) => {
     }
 
     const { amount, currency, walletAddress } = await req.json();
+
+    // Get dynamic limits from admin_settings
+    const { data: limitSetting } = await supabase
+      .from('admin_settings')
+      .select('value')
+      .eq('key', 'withdrawal_limits')
+      .single();
+    
+    const minLimit = Number(limitSetting?.value?.min || 10);
+    const maxLimit = Number(limitSetting?.value?.max || 1000);
 
     // Get user profile
     const { data: profile, error: profileError } = await supabase
@@ -79,13 +86,24 @@ serve(async (req) => {
       }
     }
 
-    // Validate amount
-    if (!amount || amount < MINIMUM_WITHDRAWAL_USD) {
+    // Validate amount against dynamic limits
+    if (!amount || amount < minLimit) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: `الحد الأدنى للسحب هو $${MINIMUM_WITHDRAWAL_USD}`,
-          minimumWithdrawal: MINIMUM_WITHDRAWAL_USD,
+          error: `الحد الأدنى للسحب هو $${minLimit}`,
+          minimumWithdrawal: minLimit,
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (amount > maxLimit) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `الحد الأقصى للسحب هو $${maxLimit}`,
+          maximumWithdrawal: maxLimit,
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -110,21 +128,35 @@ serve(async (req) => {
       );
     }
 
-    // Get estimated payout amount
-    const estimateResponse = await fetch(
-      `${NOWPAYMENTS_API_URL}/estimate?amount=${amount}&currency_from=usd&currency_to=${currency.toLowerCase()}`,
-      {
-        headers: { 'x-api-key': apiKey },
-      }
-    );
+    // Get API Key for estimation
+    const { data: apiKeySetting } = await supabase
+      .from('admin_settings')
+      .select('value')
+      .eq('key', 'nowpayments_api_key')
+      .single();
+    
+    const apiKey = apiKeySetting?.value?.value || Deno.env.get('NOWPAYMENTS_API_KEY');
 
     let estimatedCrypto = null;
-    if (estimateResponse.ok) {
-      const estimateData = await estimateResponse.json();
-      estimatedCrypto = estimateData.estimated_amount;
+    if (apiKey) {
+      try {
+        const estimateResponse = await fetch(
+          `${NOWPAYMENTS_API_URL}/estimate?amount=${amount}&currency_from=usd&currency_to=${currency.toLowerCase()}`,
+          {
+            headers: { 'x-api-key': apiKey },
+          }
+        );
+
+        if (estimateResponse.ok) {
+          const estimateData = await estimateResponse.json();
+          estimatedCrypto = estimateData.estimated_amount;
+        }
+      } catch (e) {
+        console.error('Estimation error:', e);
+      }
     }
 
-    // Deduct from user balance first (we'll refund if payout fails)
+    // Deduct from user balance first
     const newBalance = Number(profile.balance) - amount;
     const { error: balanceUpdateError } = await supabase
       .from('profiles')
@@ -173,10 +205,6 @@ serve(async (req) => {
         status: 'pending',
       });
 
-    // Note: For actual payouts, NOWPayments requires business verification and payout API access
-    // This is a placeholder for the actual payout implementation
-    console.log(`Withdrawal request created: ${withdrawal.id} for $${amount} to ${walletAddress}`);
-
     return new Response(
       JSON.stringify({
         success: true,
@@ -189,7 +217,7 @@ serve(async (req) => {
           status: 'pending',
           nextWithdrawalAt: new Date(Date.now() + WITHDRAWAL_COOLDOWN_HOURS * 60 * 60 * 1000).toISOString(),
         },
-        message: 'تم إرسال طلب السحب بنجاح. سيتم معالجته خلال 24-48 ساعة.',
+        message: 'تم إرسال طلب السحب بنجاح. سيتم معالجته من قبل الإدارة.',
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

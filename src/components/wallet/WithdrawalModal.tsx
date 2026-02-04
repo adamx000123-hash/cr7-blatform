@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, AlertCircle, Clock, Wallet } from 'lucide-react';
 import { GoldButton } from '@/components/ui/GoldButton';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useCryptoPayments } from '@/hooks/useCryptoPayments';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WithdrawalModalProps {
   isOpen: boolean;
@@ -19,16 +20,45 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
   const [amount, setAmount] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
+  const [limits, setLimits] = useState({ min: 10, max: 1000 });
 
-  const minimumWithdrawal = 1.64;
+  useEffect(() => {
+    const fetchLimits = async () => {
+      const { data } = await supabase
+        .from('admin_settings')
+        .select('value')
+        .eq('key', 'withdrawal_limits')
+        .single();
+      
+      if (data?.value) {
+        setLimits({
+          min: Number(data.value.min || 10),
+          max: Number(data.value.max || 1000)
+        });
+      }
+    };
+    
+    if (isOpen) {
+      fetchLimits();
+    }
+  }, [isOpen]);
+
   const balance = Number(profile?.balance || 0);
 
   const handleSubmitAmount = () => {
     const numAmount = parseFloat(amount);
-    if (isNaN(numAmount) || numAmount < minimumWithdrawal) {
+    if (isNaN(numAmount) || numAmount < limits.min) {
       toast({
         title: 'خطأ',
-        description: `الحد الأدنى للسحب هو $${minimumWithdrawal}`,
+        description: `الحد الأدنى للسحب هو $${limits.min}`,
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (numAmount > limits.max) {
+      toast({
+        title: 'خطأ',
+        description: `الحد الأقصى للسحب هو $${limits.max}`,
         variant: 'destructive',
       });
       return;
@@ -88,7 +118,6 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
     return `${hours} ساعة و ${minutes} دقيقة`;
   };
 
-  // All currencies are now popular (only 5 supported)
   const popularCurrencies = currencies;
 
   if (!isOpen) return null;
@@ -109,7 +138,6 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
           className="bg-card border border-border rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-border">
             <button onClick={handleClose} className="p-2 hover:bg-secondary rounded-lg">
               <X className="w-5 h-5" />
@@ -119,7 +147,6 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
           </div>
 
           <div className="p-4">
-            {/* Cooldown Check */}
             {!canWithdraw && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -141,7 +168,6 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
               </motion.div>
             )}
 
-            {/* Step 1: Amount */}
             {step === 'amount' && canWithdraw && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -155,7 +181,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                     الرصيد المتاح: <span className="text-primary font-bold">${balance.toFixed(2)}</span>
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    الحد الأدنى: $1.64
+                    الحدود: ${limits.min} - ${limits.max}
                   </p>
                 </div>
 
@@ -166,8 +192,8 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     className="text-center text-2xl font-bold h-16 pr-12"
-                    min={minimumWithdrawal}
-                    max={balance}
+                    min={limits.min}
+                    max={Math.min(balance, limits.max)}
                   />
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
                     USD
@@ -196,14 +222,13 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                 <GoldButton
                   onClick={handleSubmitAmount}
                   className="w-full"
-                  disabled={!amount || parseFloat(amount) < minimumWithdrawal || parseFloat(amount) > balance}
+                  disabled={!amount || parseFloat(amount) < limits.min || parseFloat(amount) > balance}
                 >
                   متابعة
                 </GoldButton>
               </motion.div>
             )}
 
-            {/* Step 2: Currency & Wallet */}
             {step === 'details' && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -215,7 +240,6 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                   <p className="text-sm text-muted-foreground">سحب ${amount}</p>
                 </div>
 
-                {/* Currency Selection */}
                 <div>
                   <label className="text-sm text-muted-foreground mb-2 block">اختر العملة</label>
                   <div className="grid grid-cols-2 gap-2">
@@ -236,7 +260,6 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                   </div>
                 </div>
 
-                {/* Wallet Address */}
                 <div>
                   <label className="text-sm text-muted-foreground mb-2 block">عنوان المحفظة</label>
                   <Input
@@ -267,7 +290,6 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
               </motion.div>
             )}
 
-            {/* Step 3: Confirm */}
             {step === 'confirm' && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}

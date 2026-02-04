@@ -7,14 +7,13 @@ import {
   XCircle, 
   ExternalLink, 
   Search,
-  Filter,
   MoreVertical,
-  Wallet
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const Withdrawals = () => {
   const queryClient = useQueryClient();
@@ -34,26 +33,35 @@ const Withdrawals = () => {
     }
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status, userId, amount }: { id: string, status: string, userId: string, amount: number }) => {
-      // 1. Update withdrawal status
-      const { error: updateError } = await supabase
-        .from('crypto_withdrawals')
-        .update({ 
-          status, 
-          processed_at: new Date().toISOString() 
-        })
-        .eq('id', id);
-      
-      if (updateError) throw updateError;
+  const processWithdrawalMutation = useMutation({
+    mutationFn: async ({ id, action, userId, amount, currency, network, walletAddress }: { 
+      id: string, 
+      action: 'approve' | 'reject', 
+      userId: string, 
+      amount: number,
+      currency: string,
+      network: string,
+      walletAddress: string
+    }) => {
+      if (action === 'reject') {
+        // 1. Update withdrawal status to rejected
+        const { error: updateError } = await supabase
+          .from('crypto_withdrawals')
+          .update({ 
+            status: 'rejected', 
+            processed_at: new Date().toISOString() 
+          })
+          .eq('id', id);
+        
+        if (updateError) throw updateError;
 
-      // 2. If rejected, refund balance
-      if (status === 'rejected') {
+        // 2. Refund amount to user's balance
         const { data: profile } = await supabase.from('profiles').select('balance').eq('id', userId).single();
         const newBalance = Number(profile?.balance || 0) + amount;
         
         await supabase.from('profiles').update({ balance: newBalance }).eq('id', userId);
         
+        // 3. Add refund transaction
         await supabase.from('transactions').insert({
           user_id: userId,
           type: 'deposit',
@@ -61,31 +69,70 @@ const Withdrawals = () => {
           description: 'استرداد مبلغ سحب مرفوض',
           status: 'completed'
         });
+
+        return { id, status: 'rejected' };
+      } else {
+        // APPROVE LOGIC
+        // 1. Check user balance (already deducted when requested, but double check)
+        const { data: profile } = await supabase.from('profiles').select('balance').eq('id', userId).single();
+        
+        // 2. Call NowPayments API for Payout
+        const NOWPAYMENTS_API_KEY = 'PFMSQ5C-F9M4ATH-Q0Y4PS7-SWKXEGK';
+        
+        try {
+          const response = await fetch('https://api.nowpayments.io/v1/payouts', {
+            method: 'POST',
+            headers: {
+              'x-api-key': NOWPAYMENTS_API_KEY,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              amount: amount,
+              currency: currency.toLowerCase(),
+              network: network.toLowerCase() || 'trc20',
+              address: walletAddress,
+              auto_confirm: true
+            })
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            // 3. Update transaction status to completed
+            await supabase
+              .from('crypto_withdrawals')
+              .update({ 
+                status: 'completed', 
+                processed_at: new Date().toISOString(),
+                withdrawal_id: result.id || null
+              })
+              .eq('id', id);
+            
+            return { id, status: 'completed' };
+          } else {
+            // Update status to error if API fails
+            await supabase
+              .from('crypto_withdrawals')
+              .update({ 
+                status: 'error', 
+                processed_at: new Date().toISOString()
+              })
+              .eq('id', id);
+            
+            throw new Error(result.message || 'فشلت عملية الدفع عبر NowPayments');
+          }
+        } catch (apiError: any) {
+          console.error('NowPayments API Error:', apiError);
+          throw apiError;
+        }
       }
-
-      // 3. Log activity
-      await supabase.from('activity_logs').insert({
-        action: `WITHDRAWAL_${status.toUpperCase()}`,
-        target_id: id,
-        details: { status, userId, amount }
-      });
-
-      // 4. If approved, call NOWPayments Payout (Logic placeholder)
-      if (status === 'approved') {
-        // In a real scenario, you'd call a Supabase Edge Function here
-        // await supabase.functions.invoke('nowpayments-payout', { body: { withdrawalId: id } });
-        console.log('Calling NOWPayments Payout API for:', id);
-      }
-
-      return { id, status };
     },
     onSuccess: (data) => {
-      toast.success(`تم ${data.status === 'approved' ? 'الموافقة على' : 'رفض'} الطلب بنجاح`);
+      toast.success(`تم ${data.status === 'completed' ? 'الموافقة على' : 'رفض'} الطلب بنجاح`);
       queryClient.invalidateQueries({ queryKey: ['admin-withdrawals'] });
     },
-    onError: (error) => {
-      toast.error('حدث خطأ أثناء تحديث الحالة');
-      console.error(error);
+    onError: (error: any) => {
+      toast.error(error.message || 'حدث خطأ أثناء معالجة الطلب');
     }
   });
 
@@ -99,9 +146,10 @@ const Withdrawals = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
-      case 'approved': return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
+      case 'approved': 
+      case 'completed': return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
       case 'rejected': return 'text-rose-500 bg-rose-500/10 border-rose-500/20';
-      case 'completed': return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
+      case 'error': return 'text-rose-600 bg-rose-600/10 border-rose-600/20';
       default: return 'text-muted-foreground bg-muted/10 border-muted/20';
     }
   };
@@ -130,8 +178,9 @@ const Withdrawals = () => {
           >
             <option value="all">الكل</option>
             <option value="pending">معلق</option>
-            <option value="approved">مقبول</option>
+            <option value="completed">مكتمل</option>
             <option value="rejected">مرفوض</option>
+            <option value="error">خطأ</option>
           </select>
         </div>
       </div>
@@ -202,7 +251,7 @@ const Withdrawals = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`text-[10px] px-2 py-1 rounded-full border ${getStatusColor(w.status)}`}>
-                        {w.status === 'pending' ? 'معلق' : w.status === 'approved' ? 'مقبول' : w.status === 'rejected' ? 'مرفوض' : 'مكتمل'}
+                        {w.status === 'pending' ? 'معلق' : w.status === 'completed' ? 'مكتمل' : w.status === 'rejected' ? 'مرفوض' : w.status === 'error' ? 'خطأ' : w.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-xs text-muted-foreground">
@@ -216,19 +265,35 @@ const Withdrawals = () => {
                               size="sm" 
                               variant="outline" 
                               className="h-8 w-8 p-0 border-emerald-500/50 text-emerald-500 hover:bg-emerald-500/10"
-                              onClick={() => updateStatusMutation.mutate({ id: w.id, status: 'approved', userId: w.user_id, amount: w.amount_usd })}
-                              disabled={updateStatusMutation.isPending}
+                              onClick={() => processWithdrawalMutation.mutate({ 
+                                id: w.id, 
+                                action: 'approve', 
+                                userId: w.user_id, 
+                                amount: w.amount_usd,
+                                currency: w.currency,
+                                network: w.network || 'trc20',
+                                walletAddress: w.wallet_address
+                              })}
+                              disabled={processWithdrawalMutation.isPending}
                             >
-                              <CheckCircle2 className="w-4 h-4" />
+                              {processWithdrawalMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                             </Button>
                             <Button 
                               size="sm" 
                               variant="outline" 
                               className="h-8 w-8 p-0 border-rose-500/50 text-rose-500 hover:bg-rose-500/10"
-                              onClick={() => updateStatusMutation.mutate({ id: w.id, status: 'rejected', userId: w.user_id, amount: w.amount_usd })}
-                              disabled={updateStatusMutation.isPending}
+                              onClick={() => processWithdrawalMutation.mutate({ 
+                                id: w.id, 
+                                action: 'reject', 
+                                userId: w.user_id, 
+                                amount: w.amount_usd,
+                                currency: w.currency,
+                                network: w.network || 'trc20',
+                                walletAddress: w.wallet_address
+                              })}
+                              disabled={processWithdrawalMutation.isPending}
                             >
-                              <XCircle className="w-4 h-4" />
+                              {processWithdrawalMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
                             </Button>
                           </>
                         )}
