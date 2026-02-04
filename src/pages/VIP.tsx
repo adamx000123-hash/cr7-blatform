@@ -9,7 +9,7 @@ const VIP = () => {
   const { profile } = useAuth();
   const currentVipLevel = profile?.vip_level ?? 0;
   const currentLevel = vipLevels.find(v => v.level === currentVipLevel) || vipLevels[0];
-  const referralDiscount = profile?.referral_discount ?? 0;
+  const referralDiscount = profile?.referral_discount || 20; // Default to 20 for UI display as per rules
 
   if (!profile) {
     return (
@@ -40,7 +40,7 @@ const VIP = () => {
         </motion.div>
 
         {/* Referral Discount Banner */}
-        {referralDiscount > 0 && (
+        {true && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

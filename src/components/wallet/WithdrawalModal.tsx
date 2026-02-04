@@ -20,7 +20,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
   const [selectedCurrency, setSelectedCurrency] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
 
-  const minimumWithdrawal = 10;
+  const minimumWithdrawal = 1.64;
   const balance = Number(profile?.balance || 0);
 
   const handleSubmitAmount = () => {
@@ -155,7 +155,7 @@ export const WithdrawalModal = ({ isOpen, onClose }: WithdrawalModalProps) => {
                     الرصيد المتاح: <span className="text-primary font-bold">${balance.toFixed(2)}</span>
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    الحد الأدنى: ${minimumWithdrawal}
+                    الحد الأدنى: $1.64
                   </p>
                 </div>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   User, 
@@ -31,10 +32,19 @@ interface Transaction {
 
 const Profile = () => {
   const { profile, signOut } = useAuth();
+  const location = useLocation();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isWithdrawalOpen, setIsWithdrawalOpen] = useState(false);
+
+  useEffect(() => {
+    if (location.state && (location.state as any).openDeposit) {
+      setIsDepositOpen(true);
+      // Clear state to prevent reopening on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   useEffect(() => {
     const fetchTransactions = async () => {

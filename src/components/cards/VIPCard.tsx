@@ -36,8 +36,10 @@ export const VIPCard = ({ vipLevel, currentLevel, index, referralDiscount = 0 }:
   const isUnlocked = vipLevel.level <= currentLevel;
 
   const originalPrice = vipLevel.price;
-  const discountedPrice = Math.max(0, originalPrice - referralDiscount);
-  const hasDiscount = referralDiscount > 0 && originalPrice > 0;
+  // Apply $20 discount if user has a referral discount or was referred
+  const effectiveDiscount = referralDiscount > 0 ? referralDiscount : 20;
+  const discountedPrice = Math.max(0, originalPrice - effectiveDiscount);
+  const hasDiscount = originalPrice > 0; // Show discount for all paid cards as per instructions ($20 discount)
 
   // Level specific styles
   const levelStyles: Record<number, { bg: string, glow: string, aura: string, border: string }> = {
@@ -54,32 +56,32 @@ export const VIPCard = ({ vipLevel, currentLevel, index, referralDiscount = 0 }:
       border: 'border-zinc-700/30'
     },
     1: { 
-      bg: 'from-slate-900 via-slate-800 to-black', 
-      glow: 'shadow-[0_0_25px_rgba(148,163,184,0.2)]',
-      aura: 'opacity-30 blur-2xl bg-slate-400',
-      border: 'border-slate-600/30'
+      bg: 'from-blue-950 via-slate-900 to-black', 
+      glow: 'shadow-[0_0_25px_rgba(59,130,246,0.2)]',
+      aura: 'opacity-30 blur-2xl bg-blue-500',
+      border: 'border-blue-600/30'
     },
     2: { 
-      bg: 'from-slate-900 via-slate-800 to-black', 
-      glow: 'shadow-[0_0_25px_rgba(148,163,184,0.2)]',
-      aura: 'opacity-30 blur-2xl bg-slate-400',
-      border: 'border-slate-600/30'
+      bg: 'from-slate-800 via-slate-900 to-black', 
+      glow: 'shadow-[0_0_25px_rgba(148,163,184,0.3)]',
+      aura: 'opacity-30 blur-2xl bg-slate-300',
+      border: 'border-slate-500/30'
     },
     3: { 
-      bg: 'from-amber-950 via-zinc-900 to-black', 
-      glow: 'shadow-[0_0_35px_rgba(245,158,11,0.3)]',
-      aura: 'opacity-40 blur-3xl bg-amber-500 animate-pulse',
-      border: 'border-amber-600/30'
+      bg: 'from-purple-950 via-zinc-900 to-black', 
+      glow: 'shadow-[0_0_35px_rgba(168,85,247,0.3)]',
+      aura: 'opacity-40 blur-3xl bg-purple-500 animate-pulse',
+      border: 'border-purple-600/30'
     },
     4: { 
-      bg: 'from-amber-950 via-zinc-900 to-black', 
-      glow: 'shadow-[0_0_35px_rgba(245,158,11,0.3)]',
-      aura: 'opacity-40 blur-3xl bg-amber-500 animate-pulse',
-      border: 'border-amber-600/30'
+      bg: 'from-red-950 via-zinc-900 to-black', 
+      glow: 'shadow-[0_0_35px_rgba(239,68,68,0.3)]',
+      aura: 'opacity-40 blur-3xl bg-red-500 animate-pulse',
+      border: 'border-red-600/30'
     },
     5: { 
       bg: 'from-yellow-900/40 via-zinc-900 to-black', 
-      glow: 'shadow-[0_0_50px_rgba(255,215,0,0.4)]',
+      glow: 'shadow-[0_0_50px_rgba(255,215,0,0.5)]',
       aura: 'opacity-60 blur-[100px] bg-yellow-400 animate-pulse',
       border: 'border-yellow-500/50'
     },
@@ -93,8 +95,8 @@ export const VIPCard = ({ vipLevel, currentLevel, index, referralDiscount = 0 }:
       scale: [1, 1.05, 1],
       transition: { duration: 0.3 }
     });
-    // Redirect directly to deposit page as requested
-    navigate('/wallet?tab=deposit');
+    // Redirect to profile page with deposit state
+    navigate('/profile', { state: { openDeposit: true } });
   };
 
   const formatNumber = (num: number) => {
@@ -121,9 +123,11 @@ export const VIPCard = ({ vipLevel, currentLevel, index, referralDiscount = 0 }:
           animate={controls}
           src={ronaldoImages[vipLevel.level]} 
           alt="Cristiano Ronaldo"
-          className="h-[95%] w-auto object-contain object-bottom drop-shadow-[0_0_15px_rgba(0,0,0,0.8)] group-hover:scale-110 transition-transform duration-700 ease-out"
+          className="h-[90%] w-auto object-contain object-bottom drop-shadow-[0_0_15px_rgba(0,0,0,0.8)] group-hover:scale-110 transition-transform duration-700 ease-out mb-2"
           style={{
-            filter: vipLevel.level >= 3 ? `drop-shadow(0 0 10px rgba(245,158,11,0.5))` : 'none'
+            filter: vipLevel.level === 5 ? `drop-shadow(0 0 15px rgba(255,215,0,0.6))` : 
+                    vipLevel.level === 4 ? `drop-shadow(0 0 12px rgba(239,68,68,0.5))` :
+                    vipLevel.level === 3 ? `drop-shadow(0 0 10px rgba(168,85,247,0.5))` : 'none'
           }}
         />
         {/* Shine Effect on Hover */}
@@ -183,7 +187,16 @@ export const VIPCard = ({ vipLevel, currentLevel, index, referralDiscount = 0 }:
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between text-xs px-1">
                 <span className="text-zinc-500">سعر الفتح</span>
-                <span className="text-white font-mono font-bold">{formatNumber(vipLevel.price)} USDT</span>
+                <div className="flex flex-col items-end">
+                  {hasDiscount && (
+                    <span className="text-[10px] text-zinc-500 line-through">
+                      {formatNumber(originalPrice)} USDT
+                    </span>
+                  )}
+                  <span className="text-white font-mono font-bold">
+                    {formatNumber(discountedPrice)} USDT
+                  </span>
+                </div>
               </div>
               <GoldButton
                 variant="primary"

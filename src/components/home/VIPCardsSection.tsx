@@ -15,8 +15,8 @@ export const VIPCardsSection = () => {
   const mainVipLevels = vipLevels.filter(v => v.level >= 1 && v.level <= 5);
 
   const handleUpgrade = () => {
-    // Redirect directly to deposit page as requested
-    navigate('/wallet?tab=deposit');
+    // Redirect to profile page with deposit state
+    navigate('/profile', { state: { openDeposit: true } });
   };
 
   const formatNumber = (num: number) => {
@@ -47,8 +47,9 @@ export const VIPCardsSection = () => {
         {mainVipLevels.map((level, index) => {
           const isUnlocked = level.level <= currentLevel;
           const isCurrentLevel = level.level === currentLevel;
-          const discountedPrice = Math.max(0, level.price - referralDiscount);
-          const hasDiscount = referralDiscount > 0;
+          const effectiveDiscount = referralDiscount > 0 ? referralDiscount : 20;
+          const discountedPrice = Math.max(0, level.price - effectiveDiscount);
+          const hasDiscount = level.price > 0;
 
           return (
             <motion.div
