@@ -4,58 +4,38 @@ import { vipLevels } from '@/data/mockData';
 import { GoldButton } from '@/components/ui/GoldButton';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-
-// Import VIP background images
-import bg1 from '@/assets/vip/bg-1-bronze.jpg';
-import bg2 from '@/assets/vip/bg-2-silver.jpg';
-import bg3 from '@/assets/vip/bg-3-gold.jpg';
-import bg4 from '@/assets/vip/bg-4-platinum.jpg';
-import bg5 from '@/assets/vip/bg-5-diamond.jpg';
-
-const vipBackgrounds: Record<number, string> = {
-  1: bg1,
-  2: bg2,
-  3: bg3,
-  4: bg4,
-  5: bg5,
-};
-
-const levelColors: Record<number, string> = {
-  1: 'from-amber-700 to-amber-800',
-  2: 'from-gray-300 to-gray-400',
-  3: 'from-yellow-500 to-yellow-600',
-  4: 'from-slate-300 to-slate-400',
-  5: 'from-cyan-300 to-cyan-500',
-};
 
 export const VIPCardsSection = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { toast } = useToast();
   const currentLevel = profile?.vip_level || 0;
   const referralDiscount = profile?.referral_discount || 0;
 
-  // Only show VIP 1-5 (exclude 0 and 0.5)
+  // Only show VIP 1-5 (exclude 0)
   const mainVipLevels = vipLevels.filter(v => v.level >= 1 && v.level <= 5);
 
-  const handleUpgrade = (level: number, price: number) => {
-    const discountedPrice = Math.max(0, price - referralDiscount);
-    toast({
-      title: 'قريباً!',
-      description: `سيتم تفعيل نظام الإيداع والترقية إلى VIP ${level}`,
-    });
+  const handleUpgrade = () => {
+    // Redirect directly to deposit page as requested
+    navigate('/wallet?tab=deposit');
   };
 
   const formatNumber = (num: number) => {
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
+  const levelColors: Record<number, string> = {
+    1: 'from-slate-700 to-slate-900',
+    2: 'from-slate-600 to-slate-800',
+    3: 'from-amber-600 to-amber-800',
+    4: 'from-amber-500 to-amber-700',
+    5: 'from-yellow-400 to-yellow-600',
+  };
+
   return (
     <section className="px-4 mb-8">
       <div className="flex items-center justify-between mb-4">
         <GoldButton variant="outline" size="sm" onClick={() => navigate('/vip')}>
-          عرض التفاصيل
+          عرض الكل
         </GoldButton>
         <h3 className="font-display text-xl text-foreground flex items-center gap-2">
           <Crown className="w-5 h-5 text-primary" />
@@ -76,34 +56,30 @@ export const VIPCardsSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`relative rounded-xl overflow-hidden glass-card border border-border/30 ${
-                isCurrentLevel ? 'ring-2 ring-primary' : ''
+              onClick={handleUpgrade}
+              className={`relative rounded-2xl overflow-hidden glass-card border border-white/5 cursor-pointer group ${
+                isCurrentLevel ? 'ring-2 ring-primary shadow-[0_0_20px_rgba(245,158,11,0.2)]' : ''
               }`}
             >
-              {/* Background */}
-              <div 
-                className="absolute inset-0 opacity-30"
-                style={{
-                  backgroundImage: `url(${vipBackgrounds[level.level]})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-l from-background/95 via-background/80 to-background/60" />
-
+              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-[1]" />
+              
               {/* Content */}
-              <div className="relative p-4 flex items-center justify-between">
+              <div className="relative p-4 flex items-center justify-between z-[2]">
                 <div className="flex items-center gap-3">
                   {!isUnlocked && (
                     <GoldButton
                       variant="primary"
                       size="sm"
-                      onClick={() => handleUpgrade(level.level, level.price)}
+                      className="group-hover:scale-105 transition-transform"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleUpgrade();
+                      }}
                     >
                       <Zap className="w-3 h-3 ml-1" />
                       {hasDiscount ? (
                         <span className="flex items-center gap-1">
-                          <span className="line-through text-xs opacity-60">${formatNumber(level.price)}</span>
+                          <span className="line-through text-[10px] opacity-60">${formatNumber(level.price)}</span>
                           <span>${formatNumber(discountedPrice)}</span>
                         </span>
                       ) : (
@@ -112,12 +88,12 @@ export const VIPCardsSection = () => {
                     </GoldButton>
                   )}
                   {isCurrentLevel && (
-                    <span className="px-2 py-1 bg-primary/20 text-primary text-xs rounded-full">
-                      مستواك الحالي
+                    <span className="px-3 py-1 bg-primary/20 text-primary text-[10px] font-bold rounded-full border border-primary/30 uppercase">
+                      المستوى الحالي
                     </span>
                   )}
                   {isUnlocked && !isCurrentLevel && (
-                    <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">
+                    <span className="px-3 py-1 bg-green-500/20 text-green-400 text-[10px] font-bold rounded-full border border-green-500/30 uppercase">
                       مفعّل
                     </span>
                   )}
@@ -125,16 +101,16 @@ export const VIPCardsSection = () => {
 
                 <div className="flex items-center gap-3 text-right">
                   <div>
-                    <h4 className="font-display text-lg text-foreground">
+                    <h4 className="font-display text-lg font-bold text-white">
                       VIP {level.level}
                     </h4>
-                    <p className="text-xs text-primary">{level.nameAr}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      ربح يومي: ${formatNumber(level.dailyProfit)}
+                    <p className="text-[10px] text-primary font-semibold uppercase tracking-wider">{level.nameAr}</p>
+                    <p className="text-[10px] text-zinc-400 mt-1">
+                      ربح يومي: <span className="text-green-400 font-bold">${formatNumber(level.dailyProfit)}</span>
                     </p>
                   </div>
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${levelColors[level.level]} flex items-center justify-center shadow-lg`}>
-                    <Crown className="w-5 h-5 text-white" />
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${levelColors[level.level]} flex items-center justify-center shadow-xl border border-white/10 group-hover:border-primary/50 transition-colors`}>
+                    <Crown className={`w-6 h-6 ${level.level >= 5 ? 'text-yellow-400 animate-pulse' : 'text-white'}`} />
                   </div>
                 </div>
               </div>

@@ -35,7 +35,7 @@ const VIP = () => {
             <h1 className="font-display text-2xl text-foreground">عضوية VIP</h1>
           </div>
           <p className="text-sm text-muted-foreground">
-            ارتقِ بمستواك واربح المزيد
+            ارتقِ بمستواك واربح المزيد مع الدون
           </p>
         </motion.div>
 
@@ -85,7 +85,7 @@ const VIP = () => {
               </div>
               <div>
                 <p className="text-primary-foreground font-bold text-lg">
-                  {currentVipLevel === 0.5 ? 'VIP تجريبي' : `VIP ${currentVipLevel}`}
+                  VIP {currentVipLevel}
                 </p>
                 <p className="text-primary-foreground/80 text-sm">
                   {currentLevel.nameAr}

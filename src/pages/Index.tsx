@@ -70,7 +70,7 @@ const Index = () => {
               مرحباً، {profile.username}
             </h2>
             <p className="text-muted-foreground text-sm">
-              استمر في التحديات واربح المزيد
+              استمر في التحديات واربح المزيد مع الدون
             </p>
           </motion.div>
 
@@ -83,8 +83,8 @@ const Index = () => {
           >
             <div className="bg-gradient-gold rounded-full px-6 py-2 shadow-gold glow-gold flex items-center gap-2">
               <Crown className="w-5 h-5 text-primary-foreground" />
-              <span className="font-bold text-primary-foreground">
-                {profile.vip_level === 0.5 ? 'VIP تجريبي' : `VIP ${profile.vip_level}`} - {currentVipLevel.nameAr}
+              <span className="font-bold text-primary-foreground uppercase tracking-tight">
+                VIP {profile.vip_level} - {currentVipLevel.nameAr}
               </span>
             </div>
           </motion.div>
@@ -123,7 +123,7 @@ const Index = () => {
             </div>
           </motion.div>
 
-          {/* Progress Bar - Changed to 0/2 */}
+          {/* Progress Bar */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -133,7 +133,7 @@ const Index = () => {
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-muted-foreground">التحديات اليومية</span>
               <span className="text-sm font-semibold text-foreground">
-                {Math.min(profile.daily_challenges_completed, 2)}/2
+                {profile.daily_challenges_completed}/2
               </span>
             </div>
             <div className="h-2 bg-secondary/50 rounded-full overflow-hidden">
@@ -167,7 +167,7 @@ const Index = () => {
           <StatCard
             icon={Target}
             label="مستوى VIP"
-            value={profile.vip_level === 0.5 ? 'تجريبي' : `VIP ${profile.vip_level}`}
+            value={`VIP ${profile.vip_level}`}
             subValue={currentVipLevel.nameAr}
             index={2}
           />
@@ -198,7 +198,7 @@ const Index = () => {
         <FakeWithdrawals />
       </section>
 
-      {/* VIP Cards Section - Replaces Featured Challenges */}
+      {/* VIP Cards Section */}
       <VIPCardsSection />
     </PageLayout>
   );
