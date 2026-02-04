@@ -5,12 +5,12 @@ import { VIPLevel } from '@/data/mockData';
 import { GoldButton } from '../ui/GoldButton';
 
 // Import New VIP Images
-import vip0 from '@/assets/vip_new/vip-0-al-nassr.png';
-import vip1 from '@/assets/vip_new/vip-1-man-utd.png';
-import vip2 from '@/assets/vip_new/vip-2-training.png';
-import vip3 from '@/assets/vip_new/vip-3-real-madrid.png';
-import vip4 from '@/assets/vip_new/vip-4-prime.png';
-import vip5 from '@/assets/vip_new/vip-5-ballon-dor.png';
+import vip0 from '@/assets/vip/vip-0-al-nassr.png';
+import vip1 from '@/assets/vip/vip-1-man-utd.png';
+import vip2 from '@/assets/vip/vip-2-training.png';
+import vip3 from '@/assets/vip/vip-3-real-madrid.png';
+import vip4 from '@/assets/vip/vip-4-prime.png';
+import vip5 from '@/assets/vip/vip-5-ballon-dor.png';
 
 interface VIPCardProps {
   vipLevel: VIPLevel;
