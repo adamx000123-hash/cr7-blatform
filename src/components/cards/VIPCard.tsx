@@ -96,7 +96,8 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
           className={`${vipLevel.level === 5 ? 'h-[100%] w-full' : 'h-[100%] w-auto'} object-contain object-bottom drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)] group-hover:scale-105 transition-transform duration-700 ease-out origin-bottom`}
           style={{
             filter: vipLevel.level === 5 ? `drop-shadow(0 0 30px rgba(255,215,0,0.6))` : 'none',
-            scale: vipLevel.level === 2 ? 1.2 : 1 // Adjusted VIP 2 scale
+            scale: vipLevel.level === 2 ? 1.3 : (vipLevel.level === 1 ? 0.9 : 1), // VIP 2 out of frame, VIP 1 inside frame
+            marginBottom: vipLevel.level === 1 ? '10px' : '0px'
           }}
         />
       </div>
@@ -145,30 +146,30 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
         </div>
 
         {/* Action Button */}
-        <div className="w-full pt-4">
+        <div className="w-full pt-2">
           {!isUnlocked ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {/* Pricing Display */}
               <div className="flex flex-col items-end gap-0">
-                <span className="text-xs text-zinc-500 line-through decoration-red-500/70">
+                <span className="text-[10px] text-zinc-500 line-through decoration-red-500/70">
                   {formatNumber(vipLevel.price)} USDT
                 </span>
-                <span className="text-2xl font-black text-white">
-                  {formatNumber(vipLevel.referralPrice)} <span className="text-sm text-yellow-500">USDT</span>
+                <span className="text-xl font-black text-white">
+                  {formatNumber(vipLevel.referralPrice)} <span className="text-xs text-yellow-500">USDT</span>
                 </span>
               </div>
 
               <GoldButton
                 variant="primary"
-                className="w-full h-14 rounded-2xl relative overflow-hidden group/btn border border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.3)]"
+                className="w-full h-12 rounded-xl relative overflow-hidden group/btn border border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.3)]"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleAction();
                 }}
               >
                 <div className="flex items-center justify-center gap-2 w-full relative z-10">
-                  <span className="text-lg font-black uppercase tracking-tighter">فتح الآن — ${formatNumber(vipLevel.referralPrice)}</span>
-                  <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+                  <span className="text-sm font-black uppercase tracking-tighter">فتح الآن</span>
+                  <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                 </div>
                 
                 {/* Animation Effects */}
