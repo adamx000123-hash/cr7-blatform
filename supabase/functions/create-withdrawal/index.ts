@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 const NOWPAYMENTS_API_URL = 'https://api.nowpayments.io/v1';
@@ -191,7 +191,9 @@ serve(async (req) => {
           method: 'POST',
           headers: {
             'x-api-key': nowpaymentsApiKey,
-            'Content-Type': 'application/json'
+            'Authorization': `Bearer ${nowpaymentsApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           },
           body: JSON.stringify({
             address: walletAddress,
