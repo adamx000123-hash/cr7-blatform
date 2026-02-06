@@ -6,11 +6,11 @@ import { GoldButton } from '../ui/GoldButton';
 
 // Import New VIP Images from processed folder
 import vip0 from '@/assets/vip-processed/vip0.png';
-import vip1 from '@/assets/vip-processed/vip1.webp';
-import vip2 from '@/assets/vip-processed/vip2.webp';
+import vip1 from '@/assets/vip-processed/vip1_v3.webp';
+import vip2 from '@/assets/vip-processed/vip2_v3.webp';
 import vip3 from '@/assets/vip-processed/vip3.png';
-import vip4 from '@/assets/vip-processed/vip4.webp';
-import vip5 from '@/assets/vip-processed/vip5.webp';
+import vip4 from '@/assets/vip-processed/vip4_v3.webp';
+import vip5 from '@/assets/vip-processed/vip5_v3.webp';
 
 interface VIPCardProps {
   vipLevel: VIPLevel;
