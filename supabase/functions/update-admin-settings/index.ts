@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 serve(async (req) => {
@@ -26,10 +26,10 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || authHeader === 'Bearer undefined' || authHeader === 'Bearer null' || authHeader === 'Bearer') {
       console.error('Missing or invalid Authorization header:', authHeader);
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'Authorization header is missing or invalid. Received: ' + (authHeader || 'empty')
-      }), { status: 401, headers: corsHeaders });
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Authorization header is missing or invalid. Please login again.'
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const token = authHeader.replace('Bearer ', '');
