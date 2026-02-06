@@ -76,7 +76,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -10, transition: { duration: 0.4, ease: "easeOut" } }}
       onClick={handleAction}
-      className={`relative h-[480px] w-full rounded-[2.5rem] overflow-hidden cursor-pointer border ${style.border} ${style.glow} transition-all duration-500 group bg-black`}
+      className={`relative h-[480px] w-full rounded-[2.5rem] overflow-hidden cursor-pointer border ${style.border} ${style.glow} transition-all duration-500 group bg-black flex flex-col`}
     >
       {/* Background Stadium Effect */}
       <div 
@@ -86,7 +86,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       <div className={`absolute inset-0 z-[1] ${style.overlay} backdrop-blur-[1px]`} />
       <div className={`absolute inset-0 z-[1] bg-gradient-to-t ${style.bgGradient}`} />
 
-      {/* Ronaldo Image */}
+      {/* Ronaldo Image - Positioned behind content */}
       <div className={`absolute ${vipLevel.level === 5 ? 'left-0' : 'left-[-5%]'} bottom-0 z-[2] h-full w-[65%] flex items-end justify-center pointer-events-none`}>
         <motion.img 
           loading="eager"
@@ -105,58 +105,60 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
         />
       </div>
 
-      {/* Content Area */}
+      {/* Content Area - Properly spaced and aligned */}
       <div className="relative z-[3] p-6 ml-auto w-[55%] h-full flex flex-col justify-between text-right">
-        <div className="flex flex-col items-end">
-          {/* VIP Badge */}
+        {/* Top Section: Badge & Title */}
+        <div className="flex flex-col items-end space-y-2">
           <div className={`w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-xl border ${style.border} flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
             <Crown className={`w-6 h-6 ${vipLevel.level === 5 ? 'text-yellow-400' : 'text-white'}`} />
           </div>
           
-          <h3 className="font-display text-3xl font-black text-white mt-3 tracking-tighter italic">
-            VIP {vipLevel.level}
-          </h3>
-          <p className="text-[10px] font-bold text-yellow-500 uppercase tracking-widest mt-1">
-            {vipLevel.nameAr}
-          </p>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 gap-2 mt-4 w-full">
-            <div className="bg-black/60 backdrop-blur-md rounded-xl p-2 border border-white/10 flex items-center justify-end gap-2 group-hover:border-yellow-500/30 transition-colors">
-              <div className="text-right">
-                <p className="text-[8px] text-zinc-400 font-bold uppercase leading-none">المهام اليومية</p>
-                <p className="text-sm font-display font-bold text-white">{vipLevel.dailyChallengeLimit}</p>
-              </div>
-              <Target className="w-4 h-4 text-yellow-500" />
-            </div>
-
-            <div className="bg-black/60 backdrop-blur-md rounded-xl p-2 border border-white/10 flex items-center justify-end gap-2 group-hover:border-green-500/30 transition-colors">
-              <div className="text-right">
-                <p className="text-[8px] text-zinc-400 font-bold uppercase leading-none">الربح اليومي</p>
-                <p className="text-sm font-display font-bold text-green-400">+{formatNumber(vipLevel.dailyProfit)}</p>
-              </div>
-              <TrendingUp className="w-4 h-4 text-green-400" />
-            </div>
-            
-            <div className="bg-black/60 backdrop-blur-md rounded-xl p-2 border border-white/10 flex items-center justify-end gap-2 group-hover:border-blue-500/30 transition-colors">
-              <div className="text-right">
-                <p className="text-[8px] text-zinc-400 font-bold uppercase leading-none">إجمالي الربح</p>
-                <p className="text-sm font-display font-bold text-blue-400">{formatNumber(vipLevel.totalProfit)}</p>
-              </div>
-              <Wallet className="w-4 h-4 text-blue-400" />
-            </div>
+          <div className="flex flex-col items-end">
+            <h3 className="font-display text-3xl font-black text-white tracking-tighter italic leading-none">
+              VIP {vipLevel.level}
+            </h3>
+            <p className="text-[10px] font-bold text-yellow-500 uppercase tracking-widest mt-1">
+              {vipLevel.nameAr}
+            </p>
           </div>
         </div>
 
-        {/* Action Button Section - Fixed at bottom */}
-        <div className="w-full mt-auto pt-4">
+        {/* Middle Section: Stats Grid - Consistent sizing */}
+        <div className="flex flex-col space-y-2 w-full">
+          <div className="bg-black/60 backdrop-blur-md rounded-xl p-2.5 border border-white/10 flex items-center justify-end gap-3 group-hover:border-yellow-500/30 transition-colors">
+            <div className="text-right">
+              <p className="text-[9px] text-zinc-400 font-bold uppercase leading-none mb-1">المهام اليومية</p>
+              <p className="text-sm font-display font-bold text-white">{vipLevel.dailyChallengeLimit}</p>
+            </div>
+            <Target className="w-4 h-4 text-yellow-500 shrink-0" />
+          </div>
+
+          <div className="bg-black/60 backdrop-blur-md rounded-xl p-2.5 border border-white/10 flex items-center justify-end gap-3 group-hover:border-green-500/30 transition-colors">
+            <div className="text-right">
+              <p className="text-[9px] text-zinc-400 font-bold uppercase leading-none mb-1">الربح اليومي</p>
+              <p className="text-sm font-display font-bold text-green-400">+{formatNumber(vipLevel.dailyProfit)}</p>
+            </div>
+            <TrendingUp className="w-4 h-4 text-green-400 shrink-0" />
+          </div>
+          
+          <div className="bg-black/60 backdrop-blur-md rounded-xl p-2.5 border border-white/10 flex items-center justify-end gap-3 group-hover:border-blue-500/30 transition-colors">
+            <div className="text-right">
+              <p className="text-[9px] text-zinc-400 font-bold uppercase leading-none mb-1">إجمالي الربح</p>
+              <p className="text-sm font-display font-bold text-blue-400">{formatNumber(vipLevel.totalProfit)}</p>
+            </div>
+            <Wallet className="w-4 h-4 text-blue-400 shrink-0" />
+          </div>
+        </div>
+
+        {/* Bottom Section: Action Button - Fixed and Centered */}
+        <div className="w-full pt-2">
           {!isUnlocked ? (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col items-center w-full">
               <GoldButton
                 variant="primary"
                 className="w-full h-14 rounded-2xl relative overflow-hidden group/btn border border-yellow-400/50 shadow-lg hover:shadow-yellow-400/20 transition-all duration-300 z-10"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleAction();
