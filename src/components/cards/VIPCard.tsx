@@ -28,7 +28,6 @@ const ronaldoImages: Record<number, string> = {
   5: vip5,
 };
 
-// Original Stadium backgrounds restored
 const stadiumBackgrounds: Record<number, string> = {
   0: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgWO2aWvgj9iecV4Vy1q2hH_s4j4iQXTvFmlpIPZWB7oWinie5k28keUV3RIfX45mPEgfzRYLUC8r9SOB6R5v_8JJDRHKLgkDSLvndphI7BYB6GTDomQauLURv3ay6bemePNU4oaVZbm2fPLL2Jv3PQ5c4CbE2Guw0PYdjD3citekYQDSwRJOSjPOca5lI/s1600/IMG_2561.png',
   1: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh4mOmSgoCoctyIOJyLKCbocZpRqFB29IhBd4Q9fbAyKP_c7XasCLMGfeSX6sKXNbEkfh7nLyYGF1yPV42ja1jzEohg432ABmQIkRFdCsd3Pv_r32EMJ81R-REcV_go9r-sQYSp9shEIuHgxEgEY-SoZ33udIoVxr3q-ac-jbDkfibNaXvftpNCjsLMGoY/s1600/IMG_2560.png',
@@ -77,7 +76,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -10, transition: { duration: 0.4, ease: "easeOut" } }}
       onClick={handleAction}
-      className={`relative h-[440px] w-full rounded-[2.5rem] overflow-hidden cursor-pointer border ${style.border} ${style.glow} transition-all duration-500 group bg-black`}
+      className={`relative h-[480px] w-full rounded-[2.5rem] overflow-hidden cursor-pointer border ${style.border} ${style.glow} transition-all duration-500 group bg-black`}
     >
       {/* Background Stadium Effect */}
       <div 
@@ -110,49 +109,49 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
       <div className="relative z-[3] p-6 ml-auto w-[55%] h-full flex flex-col justify-between text-right">
         <div className="flex flex-col items-end">
           {/* VIP Badge */}
-          <div className={`w-14 h-14 rounded-2xl bg-white/5 backdrop-blur-xl border ${style.border} flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
-            <Crown className={`w-8 h-8 ${vipLevel.level === 5 ? 'text-yellow-400' : 'text-white'}`} />
+          <div className={`w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-xl border ${style.border} flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
+            <Crown className={`w-6 h-6 ${vipLevel.level === 5 ? 'text-yellow-400' : 'text-white'}`} />
           </div>
           
-          <h3 className="font-display text-4xl font-black text-white mt-4 tracking-tighter italic">
+          <h3 className="font-display text-3xl font-black text-white mt-3 tracking-tighter italic">
             VIP {vipLevel.level}
           </h3>
-          <p className="text-sm font-bold text-yellow-500 uppercase tracking-widest mt-1">
+          <p className="text-[10px] font-bold text-yellow-500 uppercase tracking-widest mt-1">
             {vipLevel.nameAr}
           </p>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 gap-2 mt-6 w-full">
-            <div className="bg-black/60 backdrop-blur-md rounded-xl p-3 border border-white/10 flex items-center justify-end gap-3 group-hover:border-yellow-500/30 transition-colors">
+          <div className="grid grid-cols-1 gap-2 mt-4 w-full">
+            <div className="bg-black/60 backdrop-blur-md rounded-xl p-2 border border-white/10 flex items-center justify-end gap-2 group-hover:border-yellow-500/30 transition-colors">
               <div className="text-right">
-                <p className="text-[10px] text-zinc-400 font-bold uppercase leading-none">المهام اليومية</p>
-                <p className="text-lg font-display font-bold text-white">{vipLevel.dailyChallengeLimit}</p>
+                <p className="text-[8px] text-zinc-400 font-bold uppercase leading-none">المهام اليومية</p>
+                <p className="text-sm font-display font-bold text-white">{vipLevel.dailyChallengeLimit}</p>
               </div>
-              <Target className="w-5 h-5 text-yellow-500" />
+              <Target className="w-4 h-4 text-yellow-500" />
             </div>
 
-            <div className="bg-black/60 backdrop-blur-md rounded-xl p-3 border border-white/10 flex items-center justify-end gap-3 group-hover:border-green-500/30 transition-colors">
+            <div className="bg-black/60 backdrop-blur-md rounded-xl p-2 border border-white/10 flex items-center justify-end gap-2 group-hover:border-green-500/30 transition-colors">
               <div className="text-right">
-                <p className="text-[10px] text-zinc-400 font-bold uppercase leading-none">الربح اليومي</p>
-                <p className="text-lg font-display font-bold text-green-400">+{formatNumber(vipLevel.dailyProfit)}</p>
+                <p className="text-[8px] text-zinc-400 font-bold uppercase leading-none">الربح اليومي</p>
+                <p className="text-sm font-display font-bold text-green-400">+{formatNumber(vipLevel.dailyProfit)}</p>
               </div>
-              <TrendingUp className="w-5 h-5 text-green-400" />
+              <TrendingUp className="w-4 h-4 text-green-400" />
             </div>
             
-            <div className="bg-black/60 backdrop-blur-md rounded-xl p-3 border border-white/10 flex items-center justify-end gap-3 group-hover:border-blue-500/30 transition-colors">
+            <div className="bg-black/60 backdrop-blur-md rounded-xl p-2 border border-white/10 flex items-center justify-end gap-2 group-hover:border-blue-500/30 transition-colors">
               <div className="text-right">
-                <p className="text-[10px] text-zinc-400 font-bold uppercase leading-none">إجمالي الربح</p>
-                <p className="text-lg font-display font-bold text-blue-400">{formatNumber(vipLevel.totalProfit)}</p>
+                <p className="text-[8px] text-zinc-400 font-bold uppercase leading-none">إجمالي الربح</p>
+                <p className="text-sm font-display font-bold text-blue-400">{formatNumber(vipLevel.totalProfit)}</p>
               </div>
-              <Wallet className="w-5 h-5 text-blue-400" />
+              <Wallet className="w-4 h-4 text-blue-400" />
             </div>
           </div>
         </div>
 
-        {/* Action Button */}
-        <div className="w-full pt-2">
+        {/* Action Button Section - Fixed at bottom */}
+        <div className="w-full mt-auto pt-4">
           {!isUnlocked ? (
-            <div className="space-y-2">
+            <div className="flex flex-col gap-3">
               {/* Pricing Display */}
               <div className="flex flex-col items-end gap-0">
                 <span className="text-[10px] text-zinc-500 line-through decoration-red-500/70">
@@ -165,14 +164,14 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
 
               <GoldButton
                 variant="primary"
-                className="w-full h-14 rounded-2xl relative overflow-hidden group/btn border-2 border-yellow-400 shadow-[0_0_25px_rgba(234,179,8,0.5)] hover:shadow-[0_0_40px_rgba(234,179,8,0.8)] transition-all duration-300"
+                className="w-full h-14 rounded-2xl relative overflow-hidden group/btn border-2 border-yellow-400 shadow-[0_0_25px_rgba(234,179,8,0.5)] hover:shadow-[0_0_40px_rgba(234,179,8,0.8)] transition-all duration-300 z-10"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleAction();
                 }}
               >
-                <div className="flex items-center justify-center gap-3 w-full relative z-10">
-                  <span className="text-lg font-black uppercase tracking-widest text-black">اشترِ الآن</span>
+                <div className="flex items-center justify-center gap-3 w-full relative z-20">
+                  <span className="text-lg font-black uppercase tracking-widest text-black">فتح الآن</span>
                   <div className="bg-black rounded-full p-1">
                     <ArrowRight className="w-4 h-4 text-yellow-400 group-hover/btn:translate-x-1 transition-transform" />
                   </div>
@@ -189,7 +188,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
                     repeat: Infinity, 
                     ease: "easeInOut"
                   }}
-                  className="absolute inset-0 bg-yellow-400/20"
+                  className="absolute inset-0 bg-yellow-400/20 z-0"
                 />
 
                 {/* Shining Sweep */}
@@ -203,7 +202,7 @@ export const VIPCard = ({ vipLevel, currentLevel, index }: VIPCardProps) => {
                     ease: "easeInOut",
                     repeatDelay: 1
                   }}
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent skew-x-12"
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent skew-x-12 z-0"
                 />
               </GoldButton>
             </div>
