@@ -226,12 +226,11 @@ serve(async (req) => {
 
         // VIP levels with prices (matching mockData.ts) - sorted by price ascending
         const vipLevels = [
-          { level: 0.5, price: 0.01 },  // Test tier
-          { level: 1, price: 24.10 },
-          { level: 2, price: 30.80 },
-          { level: 3, price: 58.80 },
-          { level: 4, price: 908.00 },
-          { level: 5, price: 1820.00 },
+          { level: 1, price: 30 },
+          { level: 2, price: 58 },
+          { level: 3, price: 120 },
+          { level: 4, price: 358 },
+          { level: 5, price: 555 },
         ];
 
         // Check if deposit amount qualifies for a VIP upgrade
@@ -243,6 +242,7 @@ serve(async (req) => {
         let upgradedToLevel: number | null = null;
         for (const vip of vipLevels) {
           if (vip.level > currentVipLevel) {
+            // Price after referral discount
             const discountedPrice = Math.max(0, vip.price - referralDiscount);
             // Check if deposit is enough for this level
             if (depositAmount >= discountedPrice - 0.50) { // 50 cents tolerance

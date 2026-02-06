@@ -32,7 +32,11 @@ export interface VIPLevel {
   level: number;
   name: string;
   nameAr: string;
+  club: string;
+  clubAr: string;
+  year: string;
   price: number;
+  referralPrice: number;
   dailyChallengeLimit: number;
   simpleInterest: number;
   dailyProfit: number;
@@ -161,9 +165,13 @@ export const mockChallenges: Challenge[] = [
 export const vipLevels: VIPLevel[] = [
   {
     level: 0,
-    name: 'Al Nassr',
-    nameAr: 'النصر - البداية',
+    name: 'Sporting Lisbon',
+    nameAr: 'لشبونة — البداية',
+    club: 'Sporting Lisbon',
+    clubAr: 'سبورتينغ لشبونة',
+    year: '2002',
     price: 0,
+    referralPrice: 0,
     dailyChallengeLimit: 0,
     simpleInterest: 0,
     dailyProfit: 0,
@@ -173,9 +181,13 @@ export const vipLevels: VIPLevel[] = [
   },
   {
     level: 1,
-    name: 'Man Utd Training',
-    nameAr: 'مانشستر - تدريب',
-    price: 24.10,
+    name: 'Manchester United',
+    nameAr: 'مانشستر — الانطلاق',
+    club: 'Manchester United',
+    clubAr: 'مانشستر يونايتد',
+    year: '2004',
+    price: 30,
+    referralPrice: 10,
     dailyChallengeLimit: 1,
     simpleInterest: 1.64,
     dailyProfit: 1.64,
@@ -185,9 +197,13 @@ export const vipLevels: VIPLevel[] = [
   },
   {
     level: 2,
-    name: 'The Professional',
-    nameAr: 'المحترف',
-    price: 30.80,
+    name: 'Real Madrid',
+    nameAr: 'ريال مدريد — الاحتراف',
+    club: 'Real Madrid',
+    clubAr: 'ريال مدريد',
+    year: '2014',
+    price: 58,
+    referralPrice: 38,
     dailyChallengeLimit: 1,
     simpleInterest: 4.32,
     dailyProfit: 4.32,
@@ -197,9 +213,13 @@ export const vipLevels: VIPLevel[] = [
   },
   {
     level: 3,
-    name: 'Real Madrid Peak',
-    nameAr: 'ريال مدريد - القمة',
-    price: 58.80,
+    name: 'Juventus',
+    nameAr: 'يوفنتوس — الخبرة',
+    club: 'Juventus',
+    clubAr: 'يوفنتوس',
+    year: '2019',
+    price: 120,
+    referralPrice: 100,
     dailyChallengeLimit: 1,
     simpleInterest: 15.52,
     dailyProfit: 15.52,
@@ -209,9 +229,13 @@ export const vipLevels: VIPLevel[] = [
   },
   {
     level: 4,
-    name: 'Prime CR7',
-    nameAr: 'برايم رونالدو',
-    price: 908.00,
+    name: 'Al Nassr',
+    nameAr: 'النصر — القائد',
+    club: 'Al Nassr',
+    clubAr: 'النصر',
+    year: '2023',
+    price: 358,
+    referralPrice: 338,
     dailyChallengeLimit: 1,
     simpleInterest: 399.60,
     dailyProfit: 399.60,
@@ -221,9 +245,13 @@ export const vipLevels: VIPLevel[] = [
   },
   {
     level: 5,
-    name: 'Ballon d\'Or 2008',
-    nameAr: 'الكرة الذهبية 2008',
-    price: 1820.00,
+    name: 'Legendary Career',
+    nameAr: 'الأسطورة — المجد',
+    club: 'Legendary Career',
+    clubAr: 'المسيرة الأسطورية',
+    year: 'PRIME',
+    price: 555,
+    referralPrice: 535,
     dailyChallengeLimit: 1,
     simpleInterest: 900.00,
     dailyProfit: 900.00,
